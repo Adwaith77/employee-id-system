@@ -1,162 +1,212 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee ID Verification</title>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f2f4f7;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 500px;
-            margin: 50px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        h1 {
-            color: #1f2937;
-        }
-
-        .subtitle {
-            color: #6b7280;
-            margin-bottom: 25px;
-        }
-
-        input {
-            width: 90%;
-            padding: 12px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            box-sizing: border-box;
-        }
-
-        button {
-            width: 95%;
-            padding: 12px;
-            background: #2563eb;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        #result {
-            margin-top: 25px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMMSIL-Kharkhoda | Employee ID Verification</title>
+<style>
+:root {
+  --navy: #102747;
+  --blue: #1d4ed8;
+  --bg: #eef2f7;
+  --text: #243247;
+  --muted: #64748b;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+header {
+  background: var(--navy);
+  color: white;
+  text-align: center;
+  padding: 25px 15px;
+}
+header h1 { margin: 0; font-size: 23px; letter-spacing: .5px; }
+header p { margin: 8px 0 0; font-size: 13px; color: #dbeafe; }
+main { width: min(100% - 28px, 560px); margin: 28px auto; }
+.search-panel, .id-card {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 8px 28px #0f172a12;
+  overflow: hidden;
+}
+.search-panel { padding: 22px; margin-bottom: 22px; }
+.search-panel h2 { margin: 0 0 8px; font-size: 19px; }
+.help { margin: 0 0 18px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 8px; }
+input {
+  width: 100%; padding: 13px 14px; border: 1px solid #cbd5e1;
+  border-radius: 9px; font-size: 16px; outline: none;
+}
+input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px #1d4ed81a; }
+button {
+  width: 100%; margin-top: 12px; padding: 13px; border: 0;
+  border-radius: 9px; background: var(--blue); color: white;
+  font-size: 15px; font-weight: bold; cursor: pointer;
+}
+button:disabled { opacity: .65; cursor: wait; }
+#result:empty { display: none; }
+.message {
+  padding: 15px; background: white; border-radius: 10px;
+  text-align: center; line-height: 1.5; overflow-wrap: anywhere;
+}
+.id-card { border: 1px solid #dbe3ee; }
+.card-top {
+  padding: 23px 20px; text-align: center; color: white;
+  background: linear-gradient(135deg, #102747, #1d4ed8);
+}
+.card-top .eyebrow { font-size: 11px; letter-spacing: 2px; opacity: .85; }
+.card-top h2 { margin: 9px 0 5px; font-size: 23px; overflow-wrap: anywhere; }
+.card-top .sub { font-size: 13px; color: #dbeafe; }
+.card-body { padding: 20px; }
+.status {
+  display: block; width: fit-content; margin: 0 auto 20px;
+  padding: 8px 18px; border-radius: 30px; font-weight: bold;
+  font-size: 13px; letter-spacing: 1px;
+}
+.valid { color: #166534; background: #dcfce7; }
+.expired { color: #991b1b; background: #fee2e2; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.field { padding: 12px 0; border-bottom: 1px solid #e8edf3; min-width: 0; }
+.field.full { grid-column: 1 / -1; }
+.field .label {
+  display: block; font-size: 10px; font-weight: bold;
+  color: var(--muted); text-transform: uppercase; letter-spacing: .7px;
+  margin-bottom: 6px;
+}
+.field .value { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.card-footer {
+  background: #f8fafc; padding: 13px 18px; text-align: center;
+  color: var(--muted); font-size: 11px; line-height: 1.5;
+}
+footer { text-align: center; color: var(--muted); font-size: 12px; padding: 10px 15px 25px; }
+@media (max-width: 420px) {
+  main { width: calc(100% - 20px); margin: 18px auto; }
+  .search-panel { padding: 18px; }
+  .card-body { padding: 15px; }
+  .fields { gap: 0 10px; }
+  .field .value { font-size: 13px; }
+}
+</style>
 </head>
-
 <body>
+<header>
+  <h1>SMMSIL-Kharkhoda</h1>
+  <p>EMPLOYEE ID VERIFICATION SYSTEM</p>
+</header>
 
-<div class="container">
+<main>
+  <section class="search-panel">
+    <h2>Verify Employee ID</h2>
+    <p class="help">Enter the Employee ID printed on the physical ID card to verify its details and validity.</p>
+    <form id="searchForm">
+      <label for="employeeId">EMPLOYEE ID NUMBER</label>
+      <input id="employeeId" type="text" placeholder="Example: SES-01" autocomplete="off" required>
+      <button id="verifyButton" type="submit">Verify Employee</button>
+    </form>
+  </section>
+  <div id="result" aria-live="polite"></div>
+</main>
 
-    <h1>Employee ID Verification</h1>
-
-    <div class="subtitle">
-        Enter Employee ID to verify
-    </div>
-
-    <input
-        type="text"
-        id="employeeId"
-        placeholder="Enter Employee ID"
-    >
-
-    <button onclick="searchEmployee()">
-        Verify Employee
-    </button>
-
-    <div id="result"></div>
-
-</div>
+<footer>For employee identity verification purposes.</footer>
 
 <script>
-
 const SUPABASE_URL = "https://czerhudgpojrgthgrojk.supabase.co";
-
 const SUPABASE_KEY = "sb_publishable_eu-_L-1rcd5TBk2vnXBmTw_a9H4JO40";
 
+const result = document.getElementById("result");
+const form = document.getElementById("searchForm");
+const button = document.getElementById("verifyButton");
 
-async function searchEmployee() {
-
-    const employeeId =
-        document.getElementById("employeeId").value.trim();
-
-    const result =
-        document.getElementById("result");
-
-    if (employeeId === "") {
-        result.innerHTML =
-            "<p>Please enter Employee ID.</p>";
-        return;
-    }
-
-    result.innerHTML =
-        "<p>Searching...</p>";
-
-    try {
-
-        const response = await fetch(
-            SUPABASE_URL +
-            "/rest/v1/public_employee_cards?employee_id=eq." +
-            encodeURIComponent(employeeId) +
-            "&select=*",
-            {
-                method: "GET",
-                headers: {
-                    "apikey": SUPABASE_KEY,
-                    "Authorization": "Bearer " + SUPABASE_KEY
-                }
-            }
-        );
-
-        const data = await response.json();
-
-        if (data.length === 0) {
-
-            result.innerHTML =
-                "<p style='color:red;'>Employee ID Not valid</p>";
-
-            return;
-        }
-
-        const employee = data[0];
-
-        result.innerHTML = `
-            <h2>${employee.name || ""}</h2>
-            <p><b>Employee ID:</b> ${employee.employee_id || ""}</p>
-            <p><b>Designation:</b> ${employee.designation || ""}</p>
-            <p><b>DOB:</b> ${employee.dob || ""}</p>
-            <p><b>Age:</b> ${employee.age || ""}</p>
-            <p><b>Contractor:</b> ${employee.contractor || ""}</p>
-            <p><b>Blood Group:</b> ${employee.blood_group || ""}</p>
-            <p><b>Date of Issue:</b> ${employee.date_of_issue || ""}</p>
-            <p><b>Valid Upto:</b> ${employee.valid_upto || ""}</p>
-        `;
-
-    } catch (error) {
-
-        result.innerHTML =
-            "<p style='color:red;'>Unable to connect to server.</p>";
-
-        console.error(error);
-    }
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, function(char) {
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char];
+  });
 }
 
-</script>
+function displayField(label, value, full = false) {
+  return `<div class="field${full ? " full" : ""}">
+    <span class="label">${label}</span>
+    <span class="value">${escapeHTML(value || "—")}</span>
+  </div>`;
+}
 
+form.addEventListener("submit", async function(event) {
+  event.preventDefault();
+  const employeeId = document.getElementById("employeeId").value.trim();
+  if (!employeeId) {
+    result.innerHTML = '<div class="message">Please enter Employee ID.</div>';
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Verifying...";
+  result.innerHTML = '<div class="message">Searching employee records...</div>';
+
+  try {
+    const url = SUPABASE_URL + "/rest/v1/public_employee_cards?employee_id=eq."
+      + encodeURIComponent(employeeId) + "&select=*";
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "apikey": SUPABASE_KEY,
+        "Authorization": "Bearer " + SUPABASE_KEY
+      }
+    });
+
+    if (!response.ok) throw new Error("Request failed");
+    const data = await response.json();
+
+    if (!data.length) {
+      result.innerHTML = '<div class="message" style="color:#b91c1c;font-weight:bold;">Employee ID Not valid</div>';
+      return;
+    }
+
+    const employee = data[0];
+    const today = new Date();
+    const todayISO = today.getFullYear() + "-" +
+      String(today.getMonth() + 1).padStart(2, "0") + "-" +
+      String(today.getDate()).padStart(2, "0");
+
+    const isValid = Boolean(employee.valid_upto) && employee.valid_upto >= todayISO;
+    const statusText = isValid ? "VALID" : "EXPIRED";
+
+    result.innerHTML = `
+      <article class="id-card">
+        <div class="card-top">
+          <div class="eyebrow">DIGITAL EMPLOYEE ID CARD</div>
+          <h2>${escapeHTML(employee.name || "Employee")}</h2>
+          <div class="sub">${escapeHTML(employee.designation || "")}</div>
+        </div>
+        <div class="card-body">
+          <div class="status ${isValid ? "valid" : "expired"}">${statusText}</div>
+          <div class="fields">
+            ${displayField("Employee ID", employee.employee_id, true)}
+            ${displayField("Designation", employee.designation)}
+            ${displayField("Date of Birth", employee.dob)}
+            ${displayField("Age", employee.age)}
+            ${displayField("Contractor", employee.contractor, true)}
+            ${displayField("Blood Group", employee.blood_group)}
+            ${displayField("Date of Issue", employee.date_of_issue)}
+            ${displayField("Valid Upto", employee.valid_upto)}
+          </div>
+        </div>
+        <div class="card-footer">SMMSIL-Kharkhoda · Employee verification</div>
+      </article>`;
+  } catch (error) {
+    result.innerHTML = '<div class="message" style="color:#b91c1c;">Unable to connect to server. Please try again later.</div>';
+    console.error(error);
+  } finally {
+    button.disabled = false;
+    button.textContent = "Verify Employee";
+  }
+});
+</script>
 </body>
 </html>
