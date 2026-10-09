@@ -28,6 +28,56 @@ header {
 }
 header h1 { margin: 0; font-size: 23px; letter-spacing: .5px; }
 header p { margin: 8px 0 0; font-size: 13px; color: #dbeafe; }
+  .brand-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  max-width: 650px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.company-logo {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+  background: white;
+  border-radius: 8px;
+  padding: 5px;
+  flex-shrink: 0;
+}
+
+.brand-text h1 {
+  margin: 0;
+  font-size: 23px;
+  letter-spacing: .5px;
+}
+
+.brand-text p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #dbeafe;
+}
+
+@media (max-width: 420px) {
+  .brand-header {
+    gap: 10px;
+  }
+
+  .company-logo {
+    width: 56px;
+    height: 56px;
+  }
+
+  .brand-text h1 {
+    font-size: 18px;
+  }
+
+  .brand-text p {
+    font-size: 10px;
+  }
+}
 main { width: min(100% - 28px, 560px); margin: 28px auto; }
 .search-panel, .id-card {
   background: white;
@@ -93,11 +143,14 @@ footer { text-align: center; color: var(--muted); font-size: 12px; padding: 10px
   .field .value { font-size: 13px; }
 }
 </style>
-</head>
-<body>
 <header>
-  <h1>SMMSIL-Kharkhoda</h1>
-  <p>EMPLOYEE ID VERIFICATION SYSTEM</p>
+  <div class="brand-header">
+    <img src="logo_main.svg" alt="SMMSIL Logo" class="company-logo">
+    <div class="brand-text">
+      <h1>SMMSIL-Kharkhoda</h1>
+      <p>EMPLOYEE ID VERIFICATION SYSTEM</p>
+    </div>
+  </div>
 </header>
 
 <main>
