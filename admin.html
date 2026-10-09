@@ -1,0 +1,299 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SMMSIL Admin Panel</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<style>
+body{font-family:Arial,sans-serif;background:#f1f5f9;margin:0;color:#172033}
+header{background:#102a43;color:white;padding:20px;text-align:center}
+main{max-width:1100px;margin:22px auto;padding:16px}
+.panel{background:white;padding:20px;border-radius:12px;margin-bottom:18px;box-shadow:0 2px 8px #0001}
+input,button{padding:10px;margin:5px 3px;border-radius:6px;border:1px solid #cbd5e1}
+input{max-width:100%;box-sizing:border-box}
+button{cursor:pointer;background:#174a7e;color:white;border:0}
+.danger{background:#b42318}.green{background:#167647}.grey{background:#475569}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:5px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:9px;border-bottom:1px solid #ddd;text-align:left}
+.tablewrap{overflow-x:auto}
+#app{display:none}
+#message{white-space:pre-wrap;margin:10px 0}
+.small{font-size:13px;color:#526174}
+</style>
+</head>
+<body>
+<header>
+<h2>SMMSIL-Kharkhoda</h2>
+<p>EMPLOYEE ID ADMIN PANEL</p>
+</header>
+
+<main>
+<section class="panel" id="login">
+<h2>Admin Login</h2>
+<p class="small">Sign in using your authorized administrator email and password.</p>
+<input id="email" type="email" placeholder="Admin email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="loginAdmin()">Login</button>
+</section>
+
+<div id="message" role="status"></div>
+
+<section id="app">
+<div class="panel">
+<h2>Employee Management</h2>
+<button class="grey" onclick="logoutAdmin()">Logout</button>
+<button onclick="newEmployee()">Clear / New Employee</button>
+<button onclick="loadEmployees()">Refresh List</button>
+<hr>
+<input id="original_id" type="hidden">
+<div class="fields" id="formfields"></div>
+<p>
+<button onclick="saveEmployee()">Save Employee</button>
+<button class="danger" onclick="deactivateEmployee()">Deactivate</button>
+<button class="green" onclick="restoreEmployee()">Restore</button>
+</p>
+<p class="small">Deactivate hides an employee from public QR search without deleting their record. Restore makes the card searchable again.</p>
+</div>
+
+<div class="panel">
+<h2>Excel Import / Export</h2>
+<p class="small">Use an Excel or CSV file with column headers matching the database fields, such as employee_id, name, designation, dob and valid_upto.</p>
+<input type="file" id="excelFile" accept=".xlsx,.xls,.csv">
+<button onclick="importExcel()">Import Excel / CSV</button>
+<button onclick="exportExcel()">Export Employees</button>
+</div>
+
+<div class="panel">
+<h2>Employee List</h2>
+<input id="filter" placeholder="Search Employee ID or name" oninput="renderEmployees()">
+<label><input type="checkbox" id="showInactive" onchange="renderEmployees()"> Show inactive employees</label>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Employee ID</th><th>Name</th><th>Designation</th><th>Valid Upto</th><th>Status</th><th>Action</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+</div>
+</div>
+</section>
+</main>
+
+<script>
+// Replace these two values with the SAME project URL and publishable key
+// used in your working index.html. Never use a secret/service_role key.
+const SUPABASE_URL = "https://czerhudgpojrgthgrojk.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_eu-_L-1rcd5TBk2vnXBmTw_a9H4JO40";
+
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+const fields = [
+ ["employee_id","Employee ID","text"],
+ ["name","Name","text"],
+ ["designation","Designation","text"],
+ ["dob","Date of Birth","date"],
+ ["age","Age","number"],
+ ["contractor","Contractor","text"],
+ ["blood_group","Blood Group","text"],
+ ["date_of_issue","Date of Issue","date"],
+ ["received_by","Received By","text"],
+ ["valid_upto","Valid Upto","date"],
+ ["warning_1","Warning 1","text"],
+ ["warning_2","Warning 2","text"],
+ ["warning_3","Warning 3","text"],
+ ["renewal_1","Renewal 1","date"],
+ ["renewal_2","Renewal 2","date"],
+ ["renewal_3","Renewal 3","date"],
+ ["gate_pass_returned_1","Gate Pass Returned 1","text"],
+ ["gate_pass_returned_2","Gate Pass Returned 2","text"],
+ ["gate_pass_returned_3","Gate Pass Returned 3","text"]
+];
+
+let employees = [];
+
+document.getElementById("formfields").innerHTML = fields.map(([key,label,type]) =>
+ `<label>${label}<br><input id="f_${key}" type="${type}" ${key==="employee_id"?"required":""}></label>`
+).join("");
+
+function message(text){
+ document.getElementById("message").textContent = text;
+}
+
+async function loginAdmin(){
+ message("Signing in...");
+ const {data,error} = await db.auth.signInWithPassword({
+  email:document.getElementById("email").value.trim(),
+  password:document.getElementById("password").value
+ });
+ if(error){message("Login failed: "+error.message);return;}
+
+ // Verify that this authenticated user is listed as an administrator.
+ const {data:admin,error:adminError} = await db
+  .from("admin_users").select("user_id").eq("user_id",data.user.id).maybeSingle();
+
+ if(adminError || !admin){
+  await db.auth.signOut();
+  message("Access denied. This account is not authorized as an administrator.");
+  return;
+ }
+ document.getElementById("login").style.display="none";
+ document.getElementById("app").style.display="block";
+ message("Admin login successful.");
+ await loadEmployees();
+}
+
+async function logoutAdmin(){
+ await db.auth.signOut();
+ document.getElementById("app").style.display="none";
+ document.getElementById("login").style.display="block";
+ document.getElementById("password").value="";
+ message("Logged out.");
+}
+
+async function ensureAdmin(){
+ const {data:{user}} = await db.auth.getUser();
+ if(!user){message("Please log in again.");return false;}
+ const {data,error} = await db.from("admin_users")
+  .select("user_id").eq("user_id",user.id).maybeSingle();
+ if(error || !data){message("Administrator verification failed.");return false;}
+ return true;
+}
+
+async function loadEmployees(){
+ if(!await ensureAdmin()) return;
+ const {data,error} = await db.from("employees")
+  .select("*").order("employee_id");
+ if(error){message("Could not load employees: "+error.message);return;}
+ employees=data||[];
+ renderEmployees();
+ message("Loaded "+employees.length+" employee records.");
+}
+
+function renderEmployees(){
+ const q=(document.getElementById("filter").value||"").toLowerCase();
+ const showInactive=document.getElementById("showInactive").checked;
+ const list=employees.filter(e=>{
+  const match=(e.employee_id||"").toLowerCase().includes(q) ||
+              (e.name||"").toLowerCase().includes(q);
+  return match && (showInactive || e.is_active!==false);
+ });
+ document.getElementById("rows").innerHTML=list.map(e=>`
+ <tr>
+ <td>${esc(e.employee_id)}</td><td>${esc(e.name)}</td>
+ <td>${esc(e.designation)}</td><td>${esc(e.valid_upto)}</td>
+ <td>${e.is_active===false?"INACTIVE":"ACTIVE"}</td>
+ <td><button onclick="editEmployee('${encodeURIComponent(e.employee_id)}')">Edit</button></td>
+ </tr>`).join("");
+}
+
+function esc(value){
+ return String(value??"").replace(/[&<>"']/g,c=>({
+ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ }[c]));
+}
+
+function newEmployee(){
+ document.getElementById("original_id").value="";
+ fields.forEach(([key])=>document.getElementById("f_"+key).value="");
+}
+
+function editEmployee(encodedId){
+ const id=decodeURIComponent(encodedId);
+ const e=employees.find(x=>x.employee_id===id);
+ if(!e)return;
+ document.getElementById("original_id").value=e.employee_id;
+ fields.forEach(([key])=>{
+  document.getElementById("f_"+key).value=e[key]??"";
+ });
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+
+async function saveEmployee(){
+ if(!await ensureAdmin())return;
+ const original=document.getElementById("original_id").value;
+ const record={};
+ fields.forEach(([key,,type])=>{
+  const raw=document.getElementById("f_"+key).value.trim();
+  record[key]=raw===""?null:(type==="number"?Number(raw):raw);
+ });
+ if(!record.employee_id){message("Employee ID is required.");return;}
+ if(record.age!==null && !Number.isFinite(record.age)){
+  message("Please enter a valid age.");return;
+ }
+ record.is_active=true;
+
+ let query;
+ if(original){
+  // Keep the existing employee ID unchanged while editing other details.
+  delete record.employee_id;
+  query=db.from("employees").update(record).eq("employee_id",original);
+ }else{
+  query=db.from("employees").insert(record);
+ }
+ const {error}=await query;
+ if(error){message("Save failed: "+error.message);return;}
+ message("Employee saved successfully.");
+ newEmployee();
+ await loadEmployees();
+}
+
+async function setActive(active){
+ if(!await ensureAdmin())return;
+ const id=document.getElementById("original_id").value;
+ if(!id){message("First select an employee using Edit.");return;}
+ const {error}=await db.from("employees").update({is_active:active})
+  .eq("employee_id",id);
+ if(error){message("Update failed: "+error.message);return;}
+ message(active?"Employee restored.":"Employee deactivated.");
+ await loadEmployees();
+}
+function deactivateEmployee(){setActive(false);}
+function restoreEmployee(){setActive(true);}
+
+async function importExcel(){
+ if(!await ensureAdmin())return;
+ const file=document.getElementById("excelFile").files[0];
+ if(!file){message("Choose an Excel or CSV file first.");return;}
+ try{
+  const bytes=await file.arrayBuffer();
+  const workbook=XLSX.read(bytes,{type:"array",cellDates:false});
+  const sheet=workbook.Sheets[workbook.SheetNames[0]];
+  const records=XLSX.utils.sheet_to_json(sheet,{defval:null,raw:false});
+  if(!records.length){message("No data rows found.");return;}
+
+  const allowed=new Set(fields.map(f=>f[0]).concat(["is_active"]));
+  const cleaned=records.map(row=>{
+   const out={};
+   Object.keys(row).forEach(k=>{
+    const key=k.trim().toLowerCase();
+    if(allowed.has(key))out[key]=row[k]===""?null:row[k];
+   });
+   if(out.age!==undefined && out.age!==null)out.age=Number(out.age);
+   if(out.is_active===undefined)out.is_active=true;
+   return out;
+  }).filter(r=>r.employee_id);
+
+  if(!cleaned.length){message("No employee_id column or valid employee IDs found.");return;}
+  if(!confirm("Import "+cleaned.length+" rows? Matching employee IDs will be updated."))return;
+  const {error}=await db.from("employees").upsert(cleaned,{onConflict:"employee_id"});
+  if(error){message("Import failed: "+error.message);return;}
+  message("Imported "+cleaned.length+" rows successfully.");
+  await loadEmployees();
+ }catch(e){message("Import failed: "+e.message);}
+}
+
+async function exportExcel(){
+ if(!await ensureAdmin())return;
+ const {data,error}=await db.from("employees").select("*").order("employee_id");
+ if(error){message("Export failed: "+error.message);return;}
+ const ws=XLSX.utils.json_to_sheet(data||[]);
+ const wb=XLSX.utils.book_new();
+ XLSX.utils.book_append_sheet(wb,ws,"Employees");
+ XLSX.writeFile(wb,"EmployeeMaster_Export.xlsx");
+ message("Excel export created.");
+}
+</script>
+</body>
+</html>
