@@ -93,6 +93,14 @@ body{font-family:Arial,sans-serif;background:#f1f5f9;margin:0;color:#172033}
   letter-spacing: 1.5px;
 }
 
+.safety-logo-image {
+  width: 75px;
+  height: 75px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
 @media (max-width: 650px) {
   .safety-header {
     grid-template-columns: 1fr 1fr;
@@ -152,9 +160,11 @@ th,td{padding:9px;border-bottom:1px solid #ddd;text-align:left}
   </div>
 
   <div class="header-safety-logo">
-    <div class="safety-shield">✓</div>
+    <img src="./safety_logo.png"
+         alt="Safety Department Logo"
+         class="safety-logo-image">
     <p>SAFETY FIRST</p>
-  </div>
+</div>
 </header>
 
 <main>
