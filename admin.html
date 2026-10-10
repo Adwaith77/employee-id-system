@@ -352,16 +352,23 @@ async function loadEmployees(){
 function renderEmployees(){
  const q=(document.getElementById("filter").value||"").toLowerCase();
  const showInactive=document.getElementById("showInactive").checked;
+
+ const today = new Date().toISOString().slice(0,10);
+
  const list=employees.filter(e=>{
   const match=(e.employee_id||"").toLowerCase().includes(q) ||
               (e.name||"").toLowerCase().includes(q);
-  return match && (showInactive || e.is_active!==false);
+
+  const isActive = e.valid_upto && e.valid_upto >= today;
+
+  return match && (showInactive || isActive);
  });
+
  document.getElementById("rows").innerHTML=list.map(e=>`
  <tr>
  <td>${esc(e.employee_id)}</td><td>${esc(e.name)}</td>
  <td>${esc(e.designation)}</td><td>${esc(e.valid_upto)}</td>
- <td>${e.is_active===false?"INACTIVE":"ACTIVE"}</td>
+ <td>${e.valid_upto && e.valid_upto >= today ? "ACTIVE" : "INACTIVE"}</td>
  <td><button onclick="editEmployee('${encodeURIComponent(e.employee_id)}')">Edit</button></td>
  </tr>`).join("");
 }
