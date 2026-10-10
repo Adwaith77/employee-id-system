@@ -168,7 +168,6 @@ async function loadEmployees(){
  if(error){message("Could not load employees: "+error.message);return;}
  employees=data||[];
  renderEmployees();
- message("Loaded "+employees.length+" employee records.");
 }
 
 function renderEmployees(){
