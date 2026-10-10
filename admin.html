@@ -118,28 +118,44 @@ document.getElementById("formfields").innerHTML = fields.map(([key,label,type]) 
 ).join("");
 
 
+
+let messageTimer;
+
 function message(text){
   const box = document.getElementById("message");
+
+  clearTimeout(messageTimer);
+
   box.textContent = text;
-  box.style.padding = "12px";
+  box.style.display = "block";
+  box.style.maxWidth = "500px";
+  box.style.margin = "15px auto";
+  box.style.padding = "12px 20px";
   box.style.borderRadius = "8px";
   box.style.fontWeight = "bold";
+  box.style.textAlign = "center";
+  box.style.boxSizing = "border-box";
 
-  if (
+  const isError =
     text.toLowerCase().includes("failed") ||
     text.toLowerCase().includes("error") ||
     text.toLowerCase().includes("required") ||
     text.toLowerCase().includes("denied") ||
     text.toLowerCase().includes("invalid") ||
-    text.toLowerCase().includes("verification")
-  ) {
-    box.style.background = "#fee2e2";
-    box.style.color = "#991b1b";
-  } else {
-    box.style.background = "#dcfce7";
-    box.style.color = "#166534";
+    text.toLowerCase().includes("verification");
+
+  box.style.background = isError ? "#fee2e2" : "#dcfce7";
+  box.style.color = isError ? "#991b1b" : "#166534";
+
+  // Keep login success visible for 4 seconds.
+  if (text === "Admin login successful.") {
+    messageTimer = setTimeout(() => {
+      box.textContent = "";
+      box.style.display = "none";
+    }, 4000);
   }
 }
+
 
 
 async function loginAdmin(){
