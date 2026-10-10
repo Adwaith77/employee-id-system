@@ -148,12 +148,17 @@ function message(text){
   box.style.color = isError ? "#991b1b" : "#166534";
 
   // Keep login success visible for 4 seconds.
-  if (text === "Admin login successful.") {
-    messageTimer = setTimeout(() => {
-      box.textContent = "";
-      box.style.display = "none";
-    }, 4000);
-  }
+ 
+if (
+  text === "Admin login successful." ||
+  text === "Logged out."
+) {
+  messageTimer = setTimeout(() => {
+    box.textContent = "";
+    box.style.display = "none";
+  }, 4000);
+}
+
 }
 
 
