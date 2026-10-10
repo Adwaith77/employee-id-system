@@ -119,6 +119,12 @@ document.getElementById("formfields").innerHTML = fields.map(([key,label,type]) 
 
 function message(text){
   document.getElementById("message").textContent = text;
+
+  // Keep the temporary sign-in message silent.
+  if (text === "Signing in...") return;
+
+  // Show all other messages as popups.
+  alert(text);
 }
 
 async function loginAdmin(){
@@ -233,7 +239,7 @@ async function saveEmployee(){
  }
  const {error}=await query;
  if(error){message("Save failed: "+error.message);return;}
- alert("Employee saved successfully.");
+ message("Employee saved successfully.");
  newEmployee();
  await loadEmployees();
 }
