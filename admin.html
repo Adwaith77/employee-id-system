@@ -117,15 +117,30 @@ document.getElementById("formfields").innerHTML = fields.map(([key,label,type]) 
  `<label>${label}<br><input id="f_${key}" type="${type}" ${key==="employee_id"?"required":""}></label>`
 ).join("");
 
+
 function message(text){
-  document.getElementById("message").textContent = text;
+  const box = document.getElementById("message");
+  box.textContent = text;
+  box.style.padding = "12px";
+  box.style.borderRadius = "8px";
+  box.style.fontWeight = "bold";
 
-  // Keep the temporary sign-in message silent.
-  if (text === "Signing in...") return;
-
-  // Show all other messages as popups.
-  alert(text);
+  if (
+    text.toLowerCase().includes("failed") ||
+    text.toLowerCase().includes("error") ||
+    text.toLowerCase().includes("required") ||
+    text.toLowerCase().includes("denied") ||
+    text.toLowerCase().includes("invalid") ||
+    text.toLowerCase().includes("verification")
+  ) {
+    box.style.background = "#fee2e2";
+    box.style.color = "#991b1b";
+  } else {
+    box.style.background = "#dcfce7";
+    box.style.color = "#166534";
+  }
 }
+
 
 async function loginAdmin(){
  message("Signing in...");
