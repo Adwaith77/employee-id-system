@@ -206,7 +206,8 @@ th,td{padding:9px;border-bottom:1px solid #ddd;text-align:left}
 <div class="panel">
 <h2>Employee List</h2>
 <input id="filter" placeholder="Search Employee ID or name" oninput="renderEmployees()">
-<label><input type="checkbox" id="showInactive" onchange="renderEmployees()"> Show inactive employees</label>
+<label><input type="checkbox" id="showActive" onchange="renderEmployees()"> Active</label>
+<label><input type="checkbox" id="showInactive" onchange="renderEmployees()"> Inactive</label>
 <div class="tablewrap">
 <table>
 <thead><tr><th>Employee ID</th><th>Name</th><th>Designation</th><th>Valid Upto</th><th>Status</th><th>Action</th></tr></thead>
@@ -351,7 +352,8 @@ async function loadEmployees(){
 
 function renderEmployees(){
  const q=(document.getElementById("filter").value||"").toLowerCase();
- const showInactive=document.getElementById("showInactive").checked;
+ const showActive = document.getElementById("showActive").checked;
+const showInactive = document.getElementById("showInactive").checked;
 
  const today = new Date().toISOString().slice(0,10);
 
@@ -361,7 +363,12 @@ function renderEmployees(){
 
   const isActive = e.valid_upto && e.valid_upto >= today;
 
-  return match && (showInactive || isActive);
+  return match && (
+  (!showActive && !showInactive) ||
+  (showActive && showInactive) ||
+  (showActive && isActive) ||
+  (showInactive && !isActive)
+);
  });
 
  document.getElementById("rows").innerHTML=list.map(e=>`
