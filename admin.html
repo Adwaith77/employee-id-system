@@ -233,7 +233,7 @@ async function saveEmployee(){
  }
  const {error}=await query;
  if(error){message("Save failed: "+error.message);return;}
- message("Employee saved successfully.");
+ alert("Employee saved successfully.");
  newEmployee();
  await loadEmployees();
 }
