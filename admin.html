@@ -481,6 +481,7 @@ async function importExcel(){
   const {error}=await db.from("employees").upsert(cleaned,{onConflict:"employee_id"});
   if(error){message("Import failed: "+error.message);return;}
   message("Imported "+cleaned.length+" rows successfully.");
+setTimeout(() => message(""), 3000);
   await loadEmployees();
  }catch(e){message("Import failed: "+e.message);}
 }
