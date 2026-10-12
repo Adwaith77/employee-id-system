@@ -286,16 +286,25 @@ function message(text){
 
   // Keep login success visible for 4 seconds.
  
-if (
-  text === "Admin login successful." ||
-  text === "Logged out." ||
-  text === "Employee saved successfully."
-) {
-  messageTimer = setTimeout(() => {
+
+  // Hide notifications automatically.
+  if (text !== "") {
+    const duration =
+      text === "Admin login successful." ||
+      text === "Logged out." ||
+      text === "Employee saved successfully."
+        ? 4000
+        : 3000;
+
+    messageTimer = setTimeout(() => {
+      box.textContent = "";
+      box.style.display = "none";
+    }, duration);
+  } else {
     box.textContent = "";
     box.style.display = "none";
-  }, 4000);
-}
+  }
+
 
 }
 
