@@ -344,7 +344,7 @@ async function ensureAdmin(){
 async function loadEmployees(){
  if(!await ensureAdmin()) return;
  const {data,error} = await db.from("employees")
-  .select("*").order("employee_id");
+  .select("*").order("id", { ascending: true });
  if(error){message("Could not load employees: "+error.message);return;}
  employees=data||[];
  renderEmployees();
