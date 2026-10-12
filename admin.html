@@ -485,6 +485,7 @@ async function exportExcel(){
  XLSX.utils.book_append_sheet(wb,ws,"Employees");
  XLSX.writeFile(wb,"EmployeeMaster_Export.xlsx");
  message("Excel export created.");
+setTimeout(() => message(""), 3000);
 }
 </script>
 </body>
