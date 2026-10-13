@@ -453,38 +453,107 @@ async function setActive(active){
 function deactivateEmployee(){setActive(false);}
 function restoreEmployee(){setActive(true);}
 
+
 async function importExcel(){
  if(!await ensureAdmin())return;
+
  const file=document.getElementById("excelFile").files[0];
- if(!file){message("Choose an Excel or CSV file first.");return;}
+ if(!file){
+  message("Choose an Excel or CSV file first.");
+  return;
+ }
+
  try{
   const bytes=await file.arrayBuffer();
   const workbook=XLSX.read(bytes,{type:"array",cellDates:false});
   const sheet=workbook.Sheets[workbook.SheetNames[0]];
   const records=XLSX.utils.sheet_to_json(sheet,{defval:null,raw:false});
-  if(!records.length){message("No data rows found.");return;}
+
+  if(!records.length){
+   message("No data rows found.");
+   return;
+  }
 
   const allowed=new Set(fields.map(f=>f[0]).concat(["is_active"]));
+
   const cleaned=records.map(row=>{
    const out={};
+
    Object.keys(row).forEach(k=>{
     const key=k.trim().toLowerCase();
-    if(allowed.has(key))out[key]=row[k]===""?null:row[k];
+    if(allowed.has(key)){
+     out[key]=row[k]===""?null:row[k];
+    }
    });
-   if(out.age!==undefined && out.age!==null)out.age=Number(out.age);
-   if(out.is_active===undefined)out.is_active=true;
-   return out;
-  }).filter(r=>r.employee_id);
 
-  if(!cleaned.length){message("No employee_id column or valid employee IDs found.");return;}
-  if(!confirm("Import "+cleaned.length+" rows? Matching employee IDs will be updated."))return;
-  const {error}=await db.from("employees").upsert(cleaned,{onConflict:"employee_id"});
-  if(error){message("Import failed: "+error.message);return;}
+   if(out.age!==undefined && out.age!==null){
+    out.age=Number(out.age);
+   }
+
+   if(out.is_active===undefined){
+    out.is_active=true;
+   }
+
+   return out;
+  }).filter(r=>r.employee_id!==null &&
+               r.employee_id!==undefined &&
+               String(r.employee_id).trim()!=="")
+    .map(r=>{
+     r.employee_id=String(r.employee_id).trim();
+     return r;
+    });
+
+  if(!cleaned.length){
+   message("No employee_id column or valid employee IDs found.");
+   return;
+  }
+
+  // Detect duplicate Employee IDs within the uploaded file.
+  const seen=new Set();
+  const duplicates=new Set();
+
+  cleaned.forEach(record=>{
+   const id=record.employee_id.toLowerCase();
+
+   if(seen.has(id)){
+    duplicates.add(record.employee_id);
+   }else{
+    seen.add(id);
+   }
+  });
+
+  if(duplicates.size>0){
+   message(
+    "Import stopped. Duplicate Employee IDs found:\n"+
+    Array.from(duplicates).join(", ")+
+    "\nPlease correct these IDs in Excel and import again."
+   );
+   return;
+  }
+
+  if(!confirm(
+   "Import "+cleaned.length+
+   " rows? Matching employee IDs will be updated."
+  )){
+   return;
+  }
+
+  const {error}=await db.from("employees")
+   .upsert(cleaned,{onConflict:"employee_id"});
+
+  if(error){
+   message("Import failed: "+error.message);
+   return;
+  }
+
   message("Imported "+cleaned.length+" rows successfully.");
-setTimeout(() => message(""), 3000);
   await loadEmployees();
- }catch(e){message("Import failed: "+e.message);}
+
+ }catch(e){
+  message("Import failed: "+e.message);
+ }
 }
+
 
 async function exportExcel(){
  if(!await ensureAdmin())return;
