@@ -265,9 +265,11 @@ function message(text){
 
   box.textContent = text;
   if (text !== "") {
-  box.scrollIntoView({
-    behavior: "smooth",
-    block: "center"
+  requestAnimationFrame(() => {
+    box.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
   });
 }
   box.style.display = "block";
