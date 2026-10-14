@@ -264,6 +264,12 @@ function message(text){
   clearTimeout(messageTimer);
 
   box.textContent = text;
+  if (text !== "") {
+  box.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+}
   box.style.display = "block";
   box.style.maxWidth = "500px";
   box.style.margin = "15px auto";
